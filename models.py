@@ -44,7 +44,8 @@ class Response:
     def __init__(
         self,
         status_code: int,
-        content: str,
+        content: bytes,
+        content_type: str,
     ) -> None:
         if status_code not in self.STATUS_MESSAGES:
             raise ValueError(f"Invalid status code: {status_code}")
@@ -52,18 +53,16 @@ class Response:
         self.status_code = status_code
         self.status_message = self.STATUS_MESSAGES[status_code]
         self.content = content
-        self.content_type = "text/plain"
+        self.content_type = content_type
 
     def to_bytes(self) -> bytes:
-        content = self.content.encode("ISO-8859-1")
-
         header = (
             f"HTTP/1.1 {self.status_code} {self.status_message}\r\n"
             f"Content-Type: {self.content_type}\r\n"
-            f"Content-Length: {len(content)}\r\n"
+            f"Content-Length: {len(self.content)}\r\n"
             "Connection: close\r\n"
             "\r\n"
         ).encode("ISO-8859-1")
 
-        response = header + content
+        response = header + self.content
         return response

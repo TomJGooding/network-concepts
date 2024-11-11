@@ -1,10 +1,41 @@
 import argparse
+import os
 import socket
 from typing import Any
 
-from models import Response
+from models import Request, Response
 
 HEADER_DELIMITER = b"\r\n\r\n"
+
+
+def handle_request(request: Request) -> Response:
+    # Strip the path down to the filename for security
+    # (Real web servers restrict the path to a certain directory)
+    filename = os.path.split(request.url.path)[-1]
+
+    file_extn = os.path.splitext(filename)[-1]
+    if file_extn == ".html":
+        content_type = "text/html"
+    else:
+        content_type = "text/plain"
+
+    try:
+        with open(filename, "rb") as fp:
+            data = fp.read()
+    except FileNotFoundError:
+        response = Response(
+            status_code=404,
+            content=b"404 Not Found",
+            content_type="text/plain",
+        )
+    else:
+        response = Response(
+            status_code=200,
+            content=data,
+            content_type=content_type,
+        )
+
+    return response
 
 
 def handle_connection(
@@ -22,14 +53,28 @@ def handle_connection(
             break
 
     if request_buf:
-        decoded_request = request_buf.decode("ISO-8859-1")
-        request_line, *header_fields = decoded_request.split("\r\n")
-        print(client_addr, request_line)
+        request = parse_request(request_buf)
 
-        response = Response(status_code=200, content="Hello!")
+        response = handle_request(request)
         new_sock.sendall(response.to_bytes())
 
+        print(
+            client_addr,
+            f'"{request.method} {request.url.path} HTTP/1.1"',
+            response.status_code,
+        )
+
     new_sock.close()
+
+
+def parse_request(request_data: bytes) -> Request:
+    request = request_data.decode("ISO-8859-1")
+    request_line, *header_fields = request.split("\r\n")
+    method, path, protocol = request_line.split()
+    # TODO: Parse the request line properly!
+    url = "localhost" + path
+
+    return Request(method, url)
 
 
 def main():

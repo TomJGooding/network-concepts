@@ -1,16 +1,34 @@
+from typing import NamedTuple
+
+
+class URL(NamedTuple):
+    host: str
+    path: str
+
+
 class Request:
     def __init__(
         self,
         method: str,
-        host: str,
+        url: str,
     ) -> None:
         self.method = method
-        self.host = host
+        self.url: URL = self._parse_url(url)
+
+    def _parse_url(self, url: str) -> URL:
+        # TODO: Handle URL schemes
+        if "/" in url:
+            host, path = url.split("/", maxsplit=1)
+            path = "/" + path
+        else:
+            host = url
+            path = "/"
+        return URL(host, path)
 
     def to_bytes(self) -> bytes:
         header = (
-            f"{self.method} / HTTP/1.1\r\n"
-            f"Host: {self.host}\r\n"
+            f"{self.method} {self.url.path} HTTP/1.1\r\n"
+            f"Host: {self.url.host}\r\n"
             "Connection: close\r\n"
             "\r\n"
         ).encode("ISO-8859-1")

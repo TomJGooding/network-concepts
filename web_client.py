@@ -6,14 +6,15 @@ from models import Request
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("host")
+    parser.add_argument("url")
     parser.add_argument("-p", "--port", type=int, default=80)
     args = parser.parse_args()
 
-    client_sock = socket.socket()
-    client_sock.connect((args.host, args.port))
+    request = Request("GET", args.url)
 
-    request = Request("GET", args.host)
+    client_sock = socket.socket()
+    client_sock.connect((request.url.host, args.port))
+
     client_sock.sendall(request.to_bytes())
 
     chunks = []

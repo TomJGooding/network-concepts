@@ -1,6 +1,8 @@
 import argparse
 import socket
 
+from models import Request
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -11,16 +13,8 @@ def main():
     client_sock = socket.socket()
     client_sock.connect((args.host, args.port))
 
-    # fmt: off
-    header = (
-        "GET / HTTP/1.1\r\n"
-        f"Host: {args.host}\r\n"
-        "Connection: close\r\n"
-        "\r\n"
-    )
-    # fmt: on
-    request = header.encode("ISO-8859-1")
-    client_sock.sendall(request)
+    request = Request("GET", args.host)
+    client_sock.sendall(request.to_bytes())
 
     chunks = []
     while True:

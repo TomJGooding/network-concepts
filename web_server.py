@@ -2,6 +2,8 @@ import argparse
 import socket
 from typing import Any
 
+from models import Response
+
 HEADER_DELIMITER = b"\r\n\r\n"
 
 
@@ -24,16 +26,8 @@ def handle_connection(
         request_line, *header_fields = decoded_request.split("\r\n")
         print(client_addr, request_line)
 
-        response = (
-            "HTTP/1.1 200 OK\r\n"
-            "Content-Type: text/plain\r\n"
-            "Content-Length: 6\r\n"
-            "Connection: close\r\n"
-            "\r\n"
-            "Hello!\r\n"
-        ).encode("ISO-8859-1")
-
-        new_sock.sendall(response)
+        response = Response(status_code=200, content="Hello!")
+        new_sock.sendall(response.to_bytes())
 
     new_sock.close()
 

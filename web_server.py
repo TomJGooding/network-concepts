@@ -9,6 +9,13 @@ HEADER_DELIMITER = b"\r\n\r\n"
 
 
 def handle_request(request: Request) -> Response:
+    if request.method != "GET":
+        return Response(
+            status_code=405,
+            content=b"405 Method Not Allowed",
+            content_type="text/plain",
+        )
+
     # Strip the path down to the filename for security
     # (Real web servers restrict the path to a certain directory)
     filename = os.path.split(request.url.path)[-1]
@@ -23,19 +30,17 @@ def handle_request(request: Request) -> Response:
         with open(filename, "rb") as fp:
             data = fp.read()
     except FileNotFoundError:
-        response = Response(
+        return Response(
             status_code=404,
             content=b"404 Not Found",
             content_type="text/plain",
         )
     else:
-        response = Response(
+        return Response(
             status_code=200,
             content=data,
             content_type=content_type,
         )
-
-    return response
 
 
 def handle_connection(

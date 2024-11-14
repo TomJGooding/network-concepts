@@ -39,6 +39,7 @@ class Response:
     STATUS_MESSAGES = {
         200: "OK",
         404: "Not Found",
+        405: "Method Not Allowed",
     }
 
     def __init__(
